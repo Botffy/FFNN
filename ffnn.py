@@ -1,3 +1,4 @@
+from itertools import chain
 
 
 step_function = lambda x: -1 if x<0 else 1
@@ -21,5 +22,34 @@ class Perceptron:
 		if len(input) != len(self.weights)-1:
 			raise ValueError("Input vector is supposed to be one shorter than the perceptron's weight vector")
 
-		return self.function(sum(x*w for x, w in zip([-1]+input, self.weights)))
+		return self.function(sum(x*w for x, w in zip(chain([-1], input), self.weights)))
 
+
+
+
+class FFNN:
+	""" Feed-forward neural network as a list of layers. """
+
+	def __init__(self, layers):
+		""" Create the network with a list of layers (lists of perceptrons) """
+
+		self.layers = layers
+
+	def evaluate(self, input):
+		"""
+		Calculate the output of the network for a given input vector.
+		We just calculate the output of each neuron in each layer. The output is the output of the
+		last layer
+		"""
+
+		for layer in self.layers:
+			output = [ neuron.evaluate(input) for neuron in layer ]
+			input = output
+
+		return output
+
+	def input_len(self):
+		return len(self.layers[0][0].weights)-1
+
+	def output_len(self):
+		return len(self.layers[-1])
