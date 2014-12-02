@@ -1,8 +1,14 @@
+from __future__ import division
+
+import inspect
+import collections
 from itertools import chain
 
 
-step_function = lambda x: -1 if x<0 else 1
+heaviside = lambda x: -1 if x<0 else 1
 identity = lambda x: x
+step_function = lambda x: 0 if x<0 else 1
+
 
 class Perceptron:
 	""" Perceptron model. """
@@ -53,3 +59,39 @@ class FFNN:
 
 	def output_len(self):
 		return len(self.layers[-1])
+
+
+def blumli(function, resolution, domain):
+	"""
+	Constructs an FFNN that approximates given numeric function.
+	"""
+	# fugly hacks galore to determine dimensions
+	input_dim = len(inspect.getargspec(function).args)
+	outsample = function( *range(input_dim))
+	output_dim = len(list( outsample )) if isinstance(outsample, collections.Iterable) else 1
+
+	if input_dim > 1:
+		raise NotImplementedError("Sorry, only input dim 1 for now")
+
+	unit = (domain[1]-domain[0]) / resolution
+
+	# first layer: resolution-2 neurons, each with input_dim inputs
+	first_layer = [
+ 		Perceptron( [domain[0]+num*unit, 1], heaviside) for num in range(1,resolution)
+	]
+
+	h = {0: 1, 1: -1}
+	# second layer:
+	second_layer = [
+		Perceptron(
+			[1.5 if x!=0 and x!=resolution-1 else 0.5]+[h.get(index+1-x, 0) for index, neuron in enumerate(first_layer)],
+			step_function
+		) for x in range(resolution)
+	]
+
+	third_layer = [
+		Perceptron( [0] + [ function(domain[0]+(index+0.5)*unit)[outdim] for index, neuron in enumerate(second_layer) ], identity ) for outdim in range(output_dim)
+	]
+
+	return FFNN([first_layer, second_layer, third_layer])
+
