@@ -5,9 +5,9 @@ import collections
 from itertools import chain
 
 
-heaviside = lambda x: -1 if x<0 else 1
+step_function = lambda x: -1 if x<0 else 1
 identity = lambda x: x
-step_function = lambda x: 0 if x<0 else 1
+zero_step_function = lambda x: 0 if x<0 else 1
 
 
 class Perceptron:
@@ -80,13 +80,13 @@ def blumli(function, resolution, domain):
 	for dimension in range(input_dim):
 		input_weights = [1 if dim==dimension else 0 for dim in range(input_dim)]
 		first_layer.extend(
-			[Perceptron([domain[dimension][0]+num*units[dimension]] + input_weights, heaviside) for num in range(1,resolution)]
+			[Perceptron([domain[dimension][0]+num*units[dimension]] + input_weights, step_function) for num in range(1,resolution)]
 		)
 
 	second_layer = [
 		Perceptron(
 			[0]*(len(first_layer)+1),
-			step_function
+			zero_step_function
 		) for x in range( resolution**input_dim )
 	]
 
