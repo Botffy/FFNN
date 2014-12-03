@@ -15,7 +15,7 @@ from ffnn import *
 #for point in product([-1,1], repeat=2):
 #	print point, logical_xor.evaluate(point)
 
-net = blumli(lambda x: (2*x, -x), 100, [-2,2])
+net = blumli(lambda x, y: (x,y), 4, [(-2,2),(-1,1)])
 
 
-print net.evaluate([0.8])
+print net.evaluate([1,1])

@@ -70,28 +70,61 @@ def blumli(function, resolution, domain):
 	outsample = function( *range(input_dim))
 	output_dim = len(list( outsample )) if isinstance(outsample, collections.Iterable) else 1
 
-	if input_dim > 1:
-		raise NotImplementedError("Sorry, only input dim 1 for now")
+	if input_dim == 1:
+		domain = [(domain[0], domain[1])]
 
-	unit = (domain[1]-domain[0]) / resolution
+	units = [(domain[dim][1]-domain[dim][0])/resolution for dim in range(input_dim) ]
 
-	# first layer: resolution-2 neurons, each with input_dim inputs
-	first_layer = [
- 		Perceptron( [domain[0]+num*unit, 1], heaviside) for num in range(1,resolution)
-	]
+	# first layer: for each input dimensions, we have resolution-2 neurons, each with input_dim inputs
+	first_layer = []
+	for dimension in range(input_dim):
+		input_weights = [1 if dim==dimension else 0 for dim in range(input_dim)]
+		first_layer.extend(
+			[Perceptron([domain[dimension][0]+num*units[dimension]] + input_weights, heaviside) for num in range(1,resolution)]
+		)
 
-	h = {0: 1, 1: -1}
-	# second layer:
 	second_layer = [
 		Perceptron(
-			[1.5 if x!=0 and x!=resolution-1 else 0.5]+[h.get(index+1-x, 0) for index, neuron in enumerate(first_layer)],
+			[0]*(len(first_layer)+1),
 			step_function
-		) for x in range(resolution)
+		) for x in range( resolution**input_dim )
 	]
 
+	xs = [[None]*input_dim for neuron in second_layer]
+	for index, neuron in enumerate(second_layer):
+		neuron.weights[0] = -0.5
+		for dimension in range(1,input_dim+1):
+			#my bounds in given dimension
+			lb = (index//(resolution**(dimension-1)) % resolution) + (resolution-1)*(dimension-1)
+			hb = lb + 1
+
+			if lb > (resolution-1)*(dimension-1):
+				neuron.weights[0] +=1
+				neuron.weights[lb] = 1
+			else: lb = None
+			if hb <= (resolution-1)*dimension:
+				neuron.weights[0] +=1
+				neuron.weights[hb] = -1
+			else: hb = None
+
+			unit = (domain[dimension-1][1]-domain[dimension-1][0])/resolution
+
+			if lb is not None:
+				xs[index][dimension-1] = domain[dimension-1][0] + (lb - (resolution-1)*(dimension-1) + 0.5)*unit
+			else:
+				xs[index][dimension-1] = domain[dimension-1][0] + (hb - (resolution-1)*(dimension-1) - 0.5)*unit
+
 	third_layer = [
-		Perceptron( [0] + [ function(domain[0]+(index+0.5)*unit)[outdim] for index, neuron in enumerate(second_layer) ], identity ) for outdim in range(output_dim)
+		Perceptron( [0] + [
+			function(*xs[index]) if output_dim==1 else function(*xs[index])[outdim] for index, neuron in enumerate(second_layer)
+		], identity ) for outdim in range(output_dim)
 	]
+
+
+	#print [neuron.weights for neuron in third_layer]
+
+
+
 
 	return FFNN([first_layer, second_layer, third_layer])
 
