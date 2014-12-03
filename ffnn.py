@@ -90,7 +90,7 @@ def blumli(function, resolution, domain):
 		) for x in range( resolution**input_dim )
 	]
 
-	xs = [[None]*input_dim for neuron in second_layer]
+	xs = { neuron: [None]*input_dim for neuron in second_layer }
 	for index, neuron in enumerate(second_layer):
 		neuron.weights[0] = -0.5
 		for dimension in range(1,input_dim+1):
@@ -110,21 +110,14 @@ def blumli(function, resolution, domain):
 			unit = (domain[dimension-1][1]-domain[dimension-1][0])/resolution
 
 			if lb is not None:
-				xs[index][dimension-1] = domain[dimension-1][0] + (lb - (resolution-1)*(dimension-1) + 0.5)*unit
+				xs[neuron][dimension-1] = domain[dimension-1][0] + (lb - (resolution-1)*(dimension-1) + 0.5)*unit
 			else:
-				xs[index][dimension-1] = domain[dimension-1][0] + (hb - (resolution-1)*(dimension-1) - 0.5)*unit
+				xs[neuron][dimension-1] = domain[dimension-1][0] + (hb - (resolution-1)*(dimension-1) - 0.5)*unit
 
 	third_layer = [
 		Perceptron( [0] + [
-			function(*xs[index]) if output_dim==1 else function(*xs[index])[outdim] for index, neuron in enumerate(second_layer)
+			function(*xs[neuron]) if output_dim==1 else function(*xs[neuron])[outdim] for neuron in second_layer
 		], identity ) for outdim in range(output_dim)
 	]
 
-
-	#print [neuron.weights for neuron in third_layer]
-
-
-
-
 	return FFNN([first_layer, second_layer, third_layer])
-
