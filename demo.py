@@ -1,6 +1,7 @@
 import math
 import time
 import numpy as np
+import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
@@ -41,6 +42,26 @@ def plot3d(func, domain, gridsize, plotres=50):
 	print "Displaying..."
 	plt.show()
 	print "Done."
+	return approximator
+
+def draw(approximator):
+	G = approximator.create_graph()
+
+	maxlen = max([len(layer) for layer in approximator.layers])
+
+	pos = {}
+	for layer_idx, layer in enumerate(approximator.layers):
+		for neuron_idx, neuron in enumerate(layer):
+			print layer_idx, neuron_idx
+			pos[(layer_idx, neuron_idx)] = (layer_idx, neuron_idx + maxlen - len(layer)/2)
+
+	print pos
+
+	nx.draw_networkx_nodes(G, pos)
+	nx.draw_networkx_edges(G, pos)
+	plt.axis("off")
+	plt.show()
+
 
 if __name__ == "__main__":
 	def func(x, y):
@@ -48,4 +69,5 @@ if __name__ == "__main__":
 
 	domain = ((-1, 1),(-1, 1))
 
-	plot3d(func, domain, gridsize=2)
+	approximator=plot3d(func, domain, gridsize=4)
+	#draw(approximator)

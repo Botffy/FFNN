@@ -5,6 +5,8 @@ import collections
 from itertools import chain
 from itertools import product
 import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
 
 
 def step_function(x):
@@ -66,11 +68,16 @@ class FFNN:
 	def output_len(self):
 		return len(self.layers[-1])
 
+	def create_graph(self):
+		G = nx.DiGraph()
+		for num, neuron in enumerate(self.layers[1]):
+			G.add_weighted_edges_from( [((0,index-1), (1, num), weight) for index, weight in enumerate(neuron.weights) if weight != 0 and index!= 0 ] )
+		for num, neuron in enumerate(self.layers[2]):
+			G.add_weighted_edges_from( [((1,index-1), (2, num), weight) for index, weight in enumerate(neuron.weights) if index!= 0 ] )
+		return G;
+
 	def __str__(self):
 		return "\n\n".join(["Layer {}:\n{}".format(index, "\n".join(map(str, [neuron for neuron in layer]))) for index, layer in enumerate(self.layers)])
-
-
-
 
 
 def blumli(function, resolution, domain):
