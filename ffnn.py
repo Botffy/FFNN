@@ -50,12 +50,12 @@ class FFNN:
 		We just calculate the output of each neuron in each layer. The output is the output of the
 		last layer
 		"""
+		input = np.array([-1] + list(input))
 
 		for layer in self.layers:
-			output = [ neuron.evaluate(input) for neuron in layer ]
-			input = output
+			input = np.array([-1]+[ neuron.function(np.dot(neuron.weights, input)) for neuron in layer ])
 
-		return output
+		return input[1:]
 
 	def input_len(self):
 		return len(self.layers[0][0].weights)-1
