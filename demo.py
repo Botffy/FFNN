@@ -52,10 +52,7 @@ def draw(approximator):
 	pos = {}
 	for layer_idx, layer in enumerate(approximator.layers):
 		for neuron_idx, neuron in enumerate(layer):
-			print layer_idx, neuron_idx
 			pos[(layer_idx, neuron_idx)] = (layer_idx, neuron_idx + maxlen - len(layer)/2)
-
-	print pos
 
 	nx.draw_networkx_nodes(G, pos)
 	nx.draw_networkx_edges(G, pos)
@@ -70,4 +67,4 @@ if __name__ == "__main__":
 	domain = ((-1, 1),(-1, 1))
 
 	approximator=plot3d(func, domain, gridsize=4)
-	#draw(approximator)
+	draw(approximator)
