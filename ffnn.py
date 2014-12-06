@@ -3,6 +3,7 @@ from __future__ import division
 import inspect
 import collections
 from itertools import chain
+from itertools import product
 
 
 step_function = lambda x: -1 if x<0 else 1
@@ -81,35 +82,30 @@ def blumli(function, resolution, domain):
 		input_weights = [1 if dim==dimension else 0 for dim in range(input_dim)]
 		first_layer.extend( [Perceptron([domain[dimension][0]+num*units[dimension]] + input_weights, step_function) for num in range(1,resolution)] )
 
+	second_layer = []
+	xs = { }
+	for square in product(range(resolution), repeat=input_dim):
+		weights = [0]*len(first_layer)
+		bias = -0.5
+		xvalues = [None]*len(square)
+		for dimension, area in enumerate(square):
+			hb = area
+			lb = area-1
 
-	second_layer = [
-		Perceptron(
-			[0]*(len(first_layer)+1),
-			zero_step_function
-		) for x in range( resolution**input_dim )
-	]
+			if lb >= 0:
+				bias += 1
+				weights[ (resolution-1)*(dimension) + lb ] = 1
 
-	xs = { neuron: [None]*input_dim for neuron in second_layer }
-	for index, neuron in enumerate(second_layer):
-		neuron.weights[0] = -0.5
-		for dimension in range(1,input_dim+1):
-			#my bounds in given dimension
-			lb = (index//(resolution**(dimension-1)) % resolution) + (resolution-1)*(dimension-1)
-			hb = lb + 1
+			if hb < (resolution-1):
+				bias += 1
+				weights[ (resolution-1)*(dimension) + hb ] = -1
 
-			if lb > (resolution-1)*(dimension-1):
-				neuron.weights[0] +=1
-				neuron.weights[lb] = 1
-			else: lb = None
-			if hb <= (resolution-1)*dimension:
-				neuron.weights[0] +=1
-				neuron.weights[hb] = -1
-			else: hb = None
+			midpoint = lb+0.5 if lb>=0 else hb-0.5
+			xvalues[dimension] = domain[dimension][0] + (1+midpoint)*units[dimension]
 
-			if lb is not None:
-				xs[neuron][dimension-1] = domain[dimension-1][0] + (lb + 0.5 - (resolution-1)*(dimension-1) )*units[dimension-1]
-			else:
-				xs[neuron][dimension-1] = domain[dimension-1][0] + (hb - 0.5 - (resolution-1)*(dimension-1) )*units[dimension-1]
+		neuron = Perceptron([bias]+weights, zero_step_function)
+		second_layer.append( neuron )
+		xs[neuron] = xvalues
 
 	third_layer = [
 		Perceptron( [0] + [
