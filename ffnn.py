@@ -33,6 +33,9 @@ class Perceptron:
 		""" Calculate the output of the perceptron for a given input vector. """
 		return self.function(np.dot(self.weights, np.array([-1] + list(input))))
 
+	def __str__(self):
+		return "w = {} b = {}".format(self.weights[1:], self.weights[0])
+
 
 
 
@@ -62,6 +65,12 @@ class FFNN:
 
 	def output_len(self):
 		return len(self.layers[-1])
+
+	def __str__(self):
+		return "\n\n".join(["Layer {}:\n{}".format(index, "\n".join(map(str, [neuron for neuron in layer]))) for index, layer in enumerate(self.layers)])
+
+
+
 
 
 def blumli(function, resolution, domain):
