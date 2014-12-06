@@ -6,9 +6,14 @@ from itertools import chain
 from itertools import product
 
 
-step_function = lambda x: -1 if x<0 else 1
-identity = lambda x: x
-zero_step_function = lambda x: 0 if x<0 else 1
+def step_function(x):
+	return -1 if x<0 else 1
+
+def identity(x):
+	return x
+
+def zero_step_function(x):
+	return 0 if x<0 else 1
 
 
 class Perceptron:
