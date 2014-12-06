@@ -4,6 +4,7 @@ import inspect
 import collections
 from itertools import chain
 from itertools import product
+import numpy as np
 
 
 def step_function(x):
@@ -25,16 +26,12 @@ class Perceptron:
 		if(len(weights)<2):
 			raise ValueError("The weight vector should have at least two elements")
 
-		self.weights = weights
+		self.weights = np.array(weights)
 		self.function = function
 
 	def evaluate(self, input):
 		""" Calculate the output of the perceptron for a given input vector. """
-
-		if len(input) != len(self.weights)-1:
-			raise ValueError("Input vector is supposed to be one shorter than the perceptron's weight vector")
-
-		return self.function(sum(x*w for x, w in zip(chain([-1], input), self.weights)))
+		return self.function(np.dot(self.weights, np.array([-1] + list(input))))
 
 
 
